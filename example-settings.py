@@ -8,5 +8,5 @@ IGNORED_EXTS  = ['.pyc']
 REPOS_ROOT    = join(dirname(abspath(__file__)), 'repos')
 HOST          = '127.0.0.1'
 PORT          = 8000
-SERVER        = ''
+SERVER        = 'wsgiref'
 SERVER_OPTS   = {}
