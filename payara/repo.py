@@ -3,6 +3,10 @@ import os
 import settings
 
 def clone(repo_name, repo_user):
+    # create repo dir if it doesn't exist
+    if not os.path.exists(settings.REPOS_ROOT):
+        os.makedirs(directory)
+
     os.chdir(settings.REPOS_ROOT)
     subprocess.call('git clone --depth 1 ssh://%s/%s/%s' % (settings.GIT_HOST, repo_user, repo_name), shell=True)
 

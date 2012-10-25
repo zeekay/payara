@@ -1,12 +1,13 @@
 #!/usr/bin/env python
-import argparse, imp
+import argparse, imp, os
 from bottle import run
-from payara.server import app
 
 parser = argparse.ArgumentParser(description='Automate upload of git repos to S3.')
 parser.add_argument('settings', help='path to settings module')
 args = parser.parse_args()
 
 settings = imp.load_source('settings', os.path.abspath(args.settings))
+
+from payara.server import app
 
 run(app=app, host=settings.HOST, port=settings.PORT, server=settings.SERVER, **settings.SERVER_OPTS)
