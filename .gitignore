@@ -1,0 +1,6 @@
+repos/
+*.pyc
+settings.py
+build/
+dist/
+payara.egg-*

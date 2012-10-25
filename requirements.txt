@@ -1,0 +1,3 @@
+boto
+bottle
+gunicorn
