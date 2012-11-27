@@ -9,4 +9,7 @@ REPOS_ROOT    = join(dirname(abspath(__file__)), 'repos')
 HOST          = '127.0.0.1'
 PORT          = 8000
 SERVER        = 'wsgiref'
-SERVER_OPTS   = {}
+SERVER_OPTS   = {
+    'workers': 8,
+    'timeout': 300
+}
