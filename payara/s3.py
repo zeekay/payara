@@ -45,7 +45,12 @@ def upload(bucket_name):
             # create key for uploaded file
             k = Key(bucket)
             k.key = rel_path
+
             # boto will guess content-type and try to set appropriate header for us
-            k.set_contents_from_filename(os.path.join(path, file))
+            if file.endswith('.json'):
+                k.set_contents_from_filename(os.path.join(path, file), headers={'Cache-Control': 'no-cache'})
+            else:
+                k.set_contents_from_filename(os.path.join(path, file))
+
             # set public permisssions
             bucket.set_acl('public-read', k.key)
