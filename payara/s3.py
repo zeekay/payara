@@ -1,14 +1,19 @@
 import os
-import sys
 
-from boto.s3.connection import S3Connection
+from boto.s3.connection import Location, S3Connection
 from boto.s3.key import Key
 
 import settings
 
 def get_bucket(bucket_name):
     s3 = S3Connection(settings.ACCESS_KEY, settings.ACCESS_SECRET)
-    return s3.get_bucket(bucket_name)
+    try:
+        return s3.get_bucket(bucket_name)
+    except Exception as e:
+        if e.error_code != 'NoSuchBucket':
+            raise e
+        bucket = s3.create_bucket(bucket_name, location=Location.USWest)
+        return bucket
 
 # Exclude ignored files, extensions
 def exclude(file):
