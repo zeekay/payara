@@ -12,7 +12,9 @@ def get_bucket(bucket_name):
     except Exception as e:
         if e.error_code != 'NoSuchBucket':
             raise e
-        bucket = s3.create_bucket(bucket_name, location=Location.USWest)
+        bucket = s3.create_bucket(bucket_name, location=Location.USWest,
+                                  policy='public-read')
+        bucket.configure_website('index.html', 'error.html')
         return bucket
 
 # Exclude ignored files, extensions
