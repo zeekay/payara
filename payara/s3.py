@@ -1,9 +1,11 @@
 import os
+from multiprocessing.pool import ThreadPool
 
 from boto.s3.connection import Location, S3Connection
 from boto.s3.key import Key
 
 import settings
+
 
 def get_bucket(bucket_name):
     s3 = S3Connection(settings.ACCESS_KEY, settings.ACCESS_SECRET)
@@ -18,57 +20,58 @@ def get_bucket(bucket_name):
         return bucket
 
 # Exclude ignored files, extensions
-def exclude(file):
+def exclude(filename):
     # exclude hidden files
-    if file.startswith('.'):
+    if filename.startswith('.'):
         return True
     # exclude ignored extensions
-    if any(file.endswith(ext) for ext in settings.IGNORED_EXTS):
+    if any(filename.endswith(ext) for ext in settings.IGNORED_EXTS):
         return True
     # exclude ignored files
-    if any(file == ignored for ignored in settings.IGNORED_FILES):
+    if any(filename == ignored for ignored in settings.IGNORED_FILES):
         return True
     # allowed file
     return False
 
+
 def upload(bucket_name):
     src_dir = os.path.join(settings.REPOS_ROOT, bucket_name)
+
+    pool = ThreadPool(processes=50)
+
+    args = []
+    for path, dir, files in os.walk(src_dir):
+        for filename in files:
+            # get relative path for s3
+            rel_path = os.path.relpath(os.path.join(path, filename), src_dir)
+            args.append((bucket_name, path, filename, rel_path))
+
+    pool.map(upload_file, args)
+
+
+def upload_file(args):
+    bucket_name, path, filename, rel_path = args
+
     bucket = get_bucket(bucket_name)
 
-    # walk src dir and upload files
-    for path, dir, files in os.walk(src_dir):
-        print 'Uploading...'
-        for file in files:
-            # get relative path for s3
-            rel_path = os.path.relpath(os.path.join(path, file), src_dir)
+    # skip hidden folders, ignored extensions
+    if exclude(rel_path):
+        return
 
-            # skip hidden folders, ignored extensions
-            if exclude(rel_path):
-                continue
+    # upload file
+    print rel_path
 
-            # upload file
-            print rel_path
+    # create key for uploaded file
+    k = Key(bucket)
+    k.key = rel_path
 
-            # create key for uploaded file
-            k = Key(bucket)
-            k.key = rel_path
-
-            # boto will guess content-type and try to set appropriate header for us
-            tries = 0
-            while True:
-                try:
-                    if file.endswith('.json'):
-                        k.set_contents_from_filename(os.path.join(path, file), headers={'Cache-Control': 'no-cache'})
-                    else:
-                        k.set_contents_from_filename(os.path.join(path, file))
-                    break
-                except:
-                    print 'Error! Retrying...'
-                    tries += 1
-                    if tries > 5:
-                        break
-                    else:
-                        time.sleep(15)
-
-            # set public permisssions
-            bucket.set_acl('public-read', k.key)
+    # boto will guess content-type and try to set appropriate header for us
+    try:
+        if filename.endswith('.json'):
+            k.set_contents_from_filename(os.path.join(path, filename), headers={'Cache-Control': 'no-cache'})
+        else:
+            k.set_contents_from_filename(os.path.join(path, filename))
+        # set public permisssions
+        bucket.set_acl('public-read', k.key)
+    except:
+        print 'Failed to upload ' + rel_path
