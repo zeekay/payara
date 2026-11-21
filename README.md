@@ -1,4 +1,7 @@
 # Payara
+
+[![Open in Hanzo](https://hanzo.app/badges/open-in-hanzo.svg)](https://hanzo.app/dev/open?repo=github.com/zeekay/payara&ref=master&action=open) [![Edit with Hanzo](https://hanzo.app/badges/edit-with-hanzo.svg)](https://hanzo.app/dev/open?repo=github.com/zeekay/payara&ref=master&action=edit)
+
 Use post-recieve hooks to upload the contents of git repositories to Amazon S3.
 
 ## Install
